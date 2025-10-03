@@ -2,7 +2,7 @@
 ## Title:|cffd6266cFastMountTooltip|r
 ## Notes: Zeigt das Mount-Symbol und den Namen des Mounts im Tooltip an, auf dem dein Ziel sitzt. Unterstützt mehrere Sprachen.
 ## Author: BloodDragon2580
-## Version: 4.8
+## Version: 4.9
 ## IconTexture: Interface\AddOns\FastMountTooltip\Media\Texture\logo
 
 FastMountTooltip.lua
