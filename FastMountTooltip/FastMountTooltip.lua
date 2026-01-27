@@ -92,7 +92,7 @@ function FastMountTooltip.CheckAurasForMount(name, icon, count, dispelType, dura
   end
 end
 
--- Funktion zur Verarbeitung der Auren des Spielers
+-- Funktion zur Verarbeitung der Auren des Spielers (WoW 12+ safe: kein AuraUtil.ForEachAura)
 function FastMountTooltip.ProcessAuras(self)
   local name, unit = self:GetUnit();
 
@@ -100,11 +100,37 @@ function FastMountTooltip.ProcessAuras(self)
     return;
   end
 
-  -- Aura-Filter für hilfreiche Auren
-  local filterString = AuraUtil.CreateFilterString("HELPFUL");
+  -- Optional: Im Kampf vermeiden (reduziert Risiko/Spam und spart CPU)
+  if InCombatLockdown() or UnitAffectingCombat("player") then
+    return;
+  end
 
-  -- Durchsuche die Auren des Spielers nach Mounts
-  AuraUtil.ForEachAura(unit, filterString, 40, FastMountTooltip.CheckAurasForMount);
+  -- WoW 12: Nutze C_UnitAuras statt AuraUtil.ForEachAura (um "secret" Probleme zu umgehen)
+  local i = 1
+  while true do
+    local aura = C_UnitAuras.GetAuraDataByIndex(unit, i, "HELPFUL")
+    if not aura then break end
+
+    local spellID = aura.spellId
+
+    -- Secret-Values nicht anfassen (falls vorhanden)
+    if spellID and (not issecretvalue or not issecretvalue(spellID)) then
+      local mountID = C_MountJournal.GetMountFromSpell(spellID)
+      if mountID ~= nil then
+        local mount = FastMountTooltip.Mount:new()
+        local foundMountInfo = mount:getMountInfo(mountID)
+        if foundMountInfo then
+          GameTooltip:AddLine(" ")
+          local iconString = "|T" .. mount.icon .. ":25|t "
+          GameTooltip:AddLine(iconString .. mount.name, 1, 1, 1)
+          -- Optional: nur 1 Mount anzeigen -> dann abbrechen
+          -- break
+        end
+      end
+    end
+
+    i = i + 1
+  end
 end
 
 -- Füge die Funktion hinzu, um Mount-Informationen im Tooltip anzuzeigen
