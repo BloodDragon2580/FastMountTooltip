@@ -96,7 +96,19 @@ end
 function FastMountTooltip.ProcessAuras(self)
   local name, unit = self:GetUnit();
 
-  if (not unit or not UnitIsPlayer(unit)) then
+  -- In manchen geschützten Umgebungen (z.B. Delves/Instanzen) kann der Tooltip
+  -- "secret" UnitTokens liefern. Diese dürfen NICHT an UnitIsPlayer/C_UnitAuras
+  -- übergeben werden, sonst gibt es den Fehler "Secret values are only allowed
+  -- during untainted execution".
+  if (not unit) then
+    return;
+  end
+
+  if (issecretvalue and issecretvalue(unit)) then
+    return;
+  end
+
+  if (not UnitIsPlayer(unit)) then
     return;
   end
 
